@@ -116,10 +116,10 @@ Unnormalized discounted state distribution: $\rho_\pi :=  \sum_{t=0}^\infty \gam
 
 \begin{itemize}
 
-\item A3C: $\nabla_\theta V(s) = E_{\rho_\pi, \pi}(\nabla \log \pi_\theta (a) * (r(s,a) + V(s') - V(s)))$ 
+\item A3C: $\nabla_\theta V(s) = E_{\rho_\pi, \pi}(\nabla \log \pi_\theta (a) * (r(s,a) + \gamma V(s') - V(s)))$ 
 \\basic algorithm which exhibits high gradient variance and inability to learn on off-policy data (including Experience Replay)
 
-\item A3C with Importance Sampling (IS): \[ \nabla_\theta V(s) = E_{traj \sim \pi_{\theta'}} \left[ \dfrac{P(traj)}{P'(traj)} \nabla \log \pi_\theta (a) (r(s,a) + V(s') - V(s)) \right] \]
+\item A3C with Importance Sampling (IS): \[ \nabla_\theta V(s) = E_{traj \sim \pi_{\theta'}} \left[ \dfrac{P(traj)}{P'(traj)} \nabla \log \pi_\theta (a) (r(s,a) + \gamma V(s') - V(s)) \right] \]
 \\Unbiased estimation of policy gradient with off-policy data. However, it suffers from possibly infinite variance of density ratios if behavioral policy (the one that collected samples) and agent policy are too different.
 \\In MDP setting, 
 
@@ -294,7 +294,7 @@ $ w' \leftarrow \tau w' + (1-\tau) w, \tau = 0.999$
 Value function estimation:\\
 \vspace{1mm}
 $\phi \leftarrow argmin \sum \| V_\phi(s_n) - (r + V_\phi(s_n')) \|_2$;\\
-subj. to $\frac{1}{N} \sum_{n=1}^N \frac{\| V_\phi(s_n) - V_{\phi_{old}}(s_n) \|_2} {2\sigma^2}$\\
+subj. to $\frac{1}{N} \sum_{n=1}^N \frac{\| V_\phi(s_n) - V_{\phi_{old}}(s_n) \|_2} {2\sigma^2} < \epsilon$\\
 $(s_n,s_n') \sim MDP_\pi$
 
 
