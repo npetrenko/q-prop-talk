@@ -200,7 +200,7 @@ Compare it to DDPG policy gradient:
 \frametitle{Proof}
 
 \begin{equation}
-g(\theta) = E_{\rho_\pi, \pi} \left[ \nabla_\theta log \pi(a_t | s_t) \overline{f} (s_t, a_t) \right] =
+ E_{\rho_\pi, \pi} \left[ \nabla_\theta log \pi(a_t | s_t) \overline{f} (s_t, a_t) \right] =
 \end{equation}
 
 \begin{equation}
@@ -224,7 +224,8 @@ g(\theta) = E_{\rho_\pi, \pi} \left[ \nabla_\theta log \pi(a_t | s_t) \overline{
 
 \begin{equation}
 = E_{\rho_\pi} \left[ \nabla_a f(s_t, a) |_{a=\overline{a_t}} \nabla_\theta E_{\pi(a_t | s_t)} a_t \right] = E_{\rho_\pi} \left[ \nabla_a f(s_t, a) |_{a=\overline{a_t}} \nabla_\theta \mu_\theta(a_t) \right]
-\end{equation}
+\end{equation}we can efficiently sample from
+the variational distribution q(z; v), and that q(z; v) is differentiable with resp
 
 \end{frame}
 
