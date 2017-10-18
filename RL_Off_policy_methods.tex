@@ -144,10 +144,24 @@ Unnormalized discounted state distribution: $\rho_\pi :=  \sum_{t=0}^\infty \gam
 %------------------------------------------------
 \section{Q-prop}
 %------------------------------------------------
-\subsection{Q-prop estimator}
+\subsection{Features}
 
 \begin{frame}[t]
 \frametitle{Q-prop}
+
+Main features:
+\begin{itemize}
+\item Unbiased, low variance gradient
+\item On-policy actor with control variate
+\item Off-policy critic
+\item Possibility to use TRPO for policy updates
+\end{itemize}
+
+\end{frame}
+
+\subsection{Q-prop estimator}
+\begin{frame}[t]
+\frametitle{Q-prop estimator}
 Variance reduction through action-dependent control variates\\
  
 $\overline{f} (x,a) = f(x,\overline{a}) + \nabla_a f(x, a) (a - \overline{a})$
@@ -262,29 +276,42 @@ $\eta(s_t) = sgn(Cov)$
 \begin{frame}[t]
 \frametitle{Value function estimation}
 Q-function estimation for control variate:\\
+\vspace{1mm}
 
 $T_\pi[Q](s,a) := r(s,a) + E_\pi[Q(s',a') | s,a]$\\
 
-$w \leftarrow argmin_w (T_\pi[Q_{w'}] - Q_w)^2$\\
+$w \leftarrow argmin_w \| T_\pi[Q_{w'}] - Q_w \|_2$\\
 $ w' \leftarrow \tau w' + (1-\tau) w, \tau = 0.999$
 
-\vspace{3mm}
+\vspace{4mm}
 
 Value function estimation:\\
-$\phi \leftarrow argmin \left[ V_\phi(s) - (r + V_\phi(s')) \right]^2$;\\
-$(s,s') \sim MDP_\pi$
+\vspace{1mm}
+$\phi \leftarrow argmin \sum \| V_\phi(s_n) - (r + V_\phi(s_n')) \|_2$;\\
+subj. to $\frac{1}{N} \sum_{n=1}^N \frac{\| V_\phi(s_n) - V_{\phi_old}(s_n) \|_2} {2\sigma^2}$\\
+$(s_n,s_n') \sim MDP_\pi$
 
-\vspace{3mm}
+
+\end{frame}
+
+\begin{frame}[t]
 
 Continuous control of bias-variance tradeoff (GAE($\lambda$)):\\
+\vspace{1mm}
 $Q^\lambda (s_t,a_t) = (1-\lambda) \sum_{k=0}^{\infty} \lambda^k \left[ \sum_{m=0}^{k-1} \gamma^m r(s_{t+m}, a_{t+m}) + \gamma^{k} V_\phi  (s_{t+k}, a_{t+k}) \right]$
 
 \vspace{1.5mm}
-
 $\lambda \rightarrow 1 \Rightarrow Q^\lambda \rightarrow R$\\
 $\lambda \rightarrow 0 \Rightarrow Q^\lambda \rightarrow V_\phi$\\
 
+\vspace{4mm}
+Advantage for CV:\\
+$\overline{A_w} (s_t,a_t) = (a - \mu(\theta) )\nabla Q(s_t,a)|_{a=\mu(\theta)}$
+\end{frame}
 
+\begin{frame}[t]
+\frametitle{Algorithm}
+\includegraphics[scale=0.35]{q-prop-algo}
 \end{frame}
 
 \subsection{Empirical Results}
