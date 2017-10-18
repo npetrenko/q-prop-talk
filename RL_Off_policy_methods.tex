@@ -124,8 +124,8 @@ Unnormalized discounted state distribution: $\rho_\pi :=  \sum_{t=0}^\infty \gam
 \\In MDP setting, 
 
 \begin{equation}
-\dfrac{P(traj)}{P'(traj)} = \dfrac{p(s_0) \pi_{\theta} (a_0 | s_0) p(s_1 | a_0, s_0)
-...} {p(s_0) \pi_{\theta'} (a_0 | s_0) p(s_1 | a_0, s_0)
+\dfrac{P(traj)}{P'(traj)} = \dfrac{p(s_0) \pi (a_0 | s_0) p(s_1 | a_0, s_0)
+...} {p(s_0) \pi' (a_0 | s_0) p(s_1 | a_0, s_0)
 ...} = \prod_{t=0}^{T-1} \dfrac{\pi (a_t | s_t)} {\pi' (a_t | s_t)}
 \end{equation}
 
@@ -154,7 +154,13 @@ Main features:
 \item Unbiased, low variance gradient
 \item On-policy actor with control variate
 \item Off-policy critic
-\item Possibility to use TRPO for policy updates
+\item Ability to use TRPO for policy updates
+\end{itemize}
+
+\vspace{4mm}
+Limitations:
+\begin{itemize}
+\item Continuous control only
 \end{itemize}
 
 \end{frame}
@@ -257,7 +263,7 @@ where $\Sigma_\theta(s_t)$ is a covariance matrix of stochastic policy $\pi_\the
 \begin{frame}[t]
 \frametitle{Choice of $\eta$}
 \begin{itemize}
-\item $\eta(s_t) = Cov(A,\overline{A})/Var(\overline{A})$ leads to Adaptive Q-prop. However, its variance can be big itself if we're using single sample estimation.
+\item $\eta(s_t) = Cov(A,\overline{A})/Var(\overline{A})$ leads to Adaptive Q-prop. However, its variance can be big itself if we're using single sample estimation of Cov.
 \item Conservative Q-prop: \\
 $\eta(s_t) =
 	\begin{cases}
@@ -288,7 +294,7 @@ $ w' \leftarrow \tau w' + (1-\tau) w, \tau = 0.999$
 Value function estimation:\\
 \vspace{1mm}
 $\phi \leftarrow argmin \sum \| V_\phi(s_n) - (r + V_\phi(s_n')) \|_2$;\\
-subj. to $\frac{1}{N} \sum_{n=1}^N \frac{\| V_\phi(s_n) - V_{\phi_old}(s_n) \|_2} {2\sigma^2}$\\
+subj. to $\frac{1}{N} \sum_{n=1}^N \frac{\| V_\phi(s_n) - V_{\phi_{old}}(s_n) \|_2} {2\sigma^2}$\\
 $(s_n,s_n') \sim MDP_\pi$
 
 
@@ -306,7 +312,7 @@ $\lambda \rightarrow 0 \Rightarrow Q^\lambda \rightarrow V_\phi$\\
 
 \vspace{4mm}
 Advantage for CV:\\
-$\overline{A_w} (s_t,a_t) = (a - \mu(\theta) )\nabla Q(s_t,a)|_{a=\mu(\theta)}$
+$\overline{A_w} (s_t,a_t) = (a - \mu(\theta) )\nabla_a Q(s_t,a)|_{a=\mu(\theta)}$
 \end{frame}
 
 \begin{frame}[t]
@@ -322,6 +328,21 @@ $\overline{A_w} (s_t,a_t) = (a - \mu(\theta) )\nabla Q(s_t,a)|_{a=\mu(\theta)}$
 
 \begin{frame}
 \includegraphics[scale=0.21]{q-prop3}
+\end{frame}
+
+\section{Unifying Policy Gradient And Actor-Critic}
+
+\begin{frame}[t]
+\frametitle{Unifying Policy Gradient And Actor-Critic}
+
+Proposed extention:
+\begin{multline*}
+\nabla_{\theta} J \simeq \alpha E_{\rho_\pi, \pi} \left[ \nabla_{\theta} log \pi_\theta ( a_t | s_t) (A(s_t, a_t) - \eta \overline{A_w} (s_t,a_t)) \right] + \\ + \eta E_{\rho_{CR}} \left[ \nabla_a Q_w(s_t, a) |_{a=\mu_\theta(s_t)} 
+\nabla_\theta \mu_\theta(s_t)
+\right]
+\end{multline*}
+\includegraphics[scale=0.37]{extention}
+
 \end{frame}
 
 \end{document}
