@@ -79,12 +79,13 @@
 \usepackage{graphicx} % Allows including images
 \usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
 \usepackage{amsmath}
+\usepackage{setspace}
 
 %----------------------------------------------------------------------------------------
 %   TITLE PAGE
 %----------------------------------------------------------------------------------------
 
-\title[Short title]{Baselines and ER in policy gradient learning} % The short title appears at the bottom of every slide, the full title is only on the title page
+\title[Q-prop]{Baselines and ER in policy gradient learning} % The short title appears at the bottom of every slide, the full title is only on the title page
 
 \author{Nikita Petrenko} % Your name
 
@@ -191,7 +192,7 @@ Suggested choice:
 
 Compare it to DDPG policy gradient:
 \\$E_{data} \left[ \nabla_a Q_w (s_t, a) |_{a=\mu_\theta(s_t)} 
-\nabla_\theta \mu_\theta(s_t) \right]$
+\nabla_\theta \mu_\theta(s_t) \right] = E_{data} \left[ \nabla_\theta Q_w (s_t, \mu_\theta(s_t)) \right]$
 
 \end{frame}
 
@@ -223,7 +224,7 @@ Compare it to DDPG policy gradient:
 \end{equation}
 
 \begin{equation}
-= E_{\rho_\pi} \left[ \nabla_a f(s_t, a) |_{a=\overline{a_t}} \nabla_\theta E_{\pi(a_t | s_t)} a_t \right] = E_{\rho_\pi} \left[ \nabla_a f(s_t, a) |_{a=\overline{a_t}} \nabla_\theta \mu_\theta(a_t) \right]
+= E_{\rho_\pi} \left[ \nabla_a f(s_t, a) |_{a=\overline{a_t}} \nabla_\theta E_{\pi(a_t | s_t)} a_t \right] = E_{\rho_\pi} \left[ \nabla_a f(s_t, a) |_{a=\overline{a_t}} \nabla_\theta \mu_\theta(s_t) \right]
 \end{equation}we can efficiently sample from
 the variational distribution q(z; v), and that q(z; v) is differentiable with resp
 
@@ -279,41 +280,84 @@ $\eta(s_t) = sgn(Cov)$
 
 \end{frame}
 
+\subsection{Other form of control variate}
+\begin{frame}
+\frametitle{Other form of control variate}
+Actually we don't have to restrict ourselves to using first order Taylor expansion of critic by observing that:\\
+\begin{equation*}
+E_\pi \nabla_\theta log \pi Q_w (s, a) = \nabla_\theta E_\pi Q_w (s,a)
+\end{equation*}
+In discrete action spaces $\nabla_\theta E_\pi ... $ can be estimated in analytic form, in continuous one would have to use reparametrization trick\\
+The gradient estimate then becomes:\\
+\begin{multline*}
+\nabla_{\theta} J = E_{\rho_\pi, \pi} \left[ \nabla_{\theta} log \pi_\theta ( a_t | s_t) (A(s_t, a_t) - \eta(s_t) A_w (s_t,a_t)) \right] + \\ + E_{\rho_\pi} \left[ \eta(s_t) \nabla_\theta E_\pi Q_w (s_t,a) \right]
+\end{multline*}
+
+\end{frame}
+
 \subsection{Value function estimation}
-\begin{frame}[t]
+\begin{frame}
+
+%\begin{minipage}{.6\textwidth}
 \frametitle{Value function estimation}
 Q-function estimation for control variate:\\
+
+\begin{center}
 \vspace{1mm}
 
+{\setstretch{2.0}
 $T_\pi[Q](s,a) := r(s,a) + E_\pi[Q(s',a') | s,a]$\\
 
 $w \leftarrow argmin_w \| T_\pi[Q_{w'}] - Q_w \|_2$\\
+\vspace{1mm}
 $ w' \leftarrow \tau w' + (1-\tau) w, \tau = 0.999$
+}
+\end{center}
 
 \vspace{4mm}
 
 Value function estimation:\\
-\vspace{1mm}
-$\phi \leftarrow argmin \sum \| V_\phi(s_n) - (r + V_\phi(s_n')) \|_2$;\\
-subj. to $\frac{1}{N} \sum_{n=1}^N \frac{\| V_\phi(s_n) - V_{\phi_{old}}(s_n) \|_2} {2\sigma^2} < \epsilon$\\
-$(s_n,s_n') \sim MDP_\pi$
 
+\begin{center}
+\vspace{1mm}
+{\setstretch{2.0}
+$\phi \leftarrow argmin \sum \| V_\phi(s_n) - (r + V_\phi(s_n')) \|_2$;\\
+
+subj. to $\frac{1}{N} \sum_{n=1}^N \frac{\| V_\phi(s_n) - V_{\phi_{old}}(s_n) \|_2} {2\sigma^2} < \epsilon$\\
+\vspace{1mm}
+$(s_n,s_n') \sim MDP_\pi$
+}
+
+%\end{minipage}
+\end{center}
 
 \end{frame}
 
-\begin{frame}[t]
+\begin{frame}
+
 
 Continuous control of bias-variance tradeoff (GAE($\lambda$)):\\
-\vspace{1mm}
+
+{
+\setlength{\parindent}{1cm}
+\hangindent=1cm
+\vspace{3mm}
 $Q^\lambda (s_t,a_t) = (1-\lambda) \sum_{k=0}^{\infty} \lambda^k \left[ \sum_{m=0}^{k-1} \gamma^m r(s_{t+m}, a_{t+m}) + \gamma^{k} V_\phi  (s_{t+k}, a_{t+k}) \right]$
 
 \vspace{1.5mm}
 $\lambda \rightarrow 1 \Rightarrow Q^\lambda \rightarrow R$\\
 $\lambda \rightarrow 0 \Rightarrow Q^\lambda \rightarrow V_\phi$\\
+}
 
 \vspace{4mm}
 Advantage for CV:\\
+{
+\vspace{3mm}
+\setlength{\parindent}{1cm}
+\hangindent=1cm
 $\overline{A_w} (s_t,a_t) = (a - \mu(\theta) )\nabla_a Q(s_t,a)|_{a=\mu(\theta)}$
+}
+
 \end{frame}
 
 \begin{frame}[t]
@@ -343,6 +387,22 @@ Proposed extention:
 \right]
 \end{multline*}
 \includegraphics[scale=0.37]{extention}
+
+\end{frame}
+
+\section{RETRACE}
+
+\begin{frame}[t]
+Considet general form of operator:
+\begin{equation*}
+R Q [x,a] = Q[x,a] + E_\mu \left[ \sum_{t=0}^\infty \gamma^t \prod_{i=1}^{t} c_t \left( r_t + E_\pi(Q(x_{t+1},a)) - Q(x_t,a) \right) \right]
+\end{equation*}
+
+\begin{itemize}
+\item $c_t = \frac{\pi(a_t | s_t) }{\mu(a_t | s_t)}$ \\
+Importance Sampling for policy estimation with baseline $Q$. $\forall Q,  R Q = Q_\pi$
+
+\end{itemize}
 
 \end{frame}
 
