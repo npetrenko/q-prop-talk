@@ -80,6 +80,7 @@
 \usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
 \usepackage{amsmath}
 \usepackage{setspace}
+\usepackage{biblatex}
 
 %----------------------------------------------------------------------------------------
 %   TITLE PAGE
@@ -113,7 +114,7 @@
 \begin{frame}[t]
 \frametitle{Common methods of PG learning}
 
-Unnormalized discounted state distribution: $\rho_\pi :=  \sum_{t=0}^\infty \gamma^t P(s_0 \rightarrow s | t)$ 
+Discounted state distribution: $\rho_\pi :=  (1-\gamma) \sum_{t=0}^\infty \gamma^t P(s_0 \rightarrow s | t)$ 
 
 \begin{itemize}
 
@@ -225,8 +226,7 @@ Compare it to DDPG policy gradient:
 
 \begin{equation}
 = E_{\rho_\pi} \left[ \nabla_a f(s_t, a) |_{a=\overline{a_t}} \nabla_\theta E_{\pi(a_t | s_t)} a_t \right] = E_{\rho_\pi} \left[ \nabla_a f(s_t, a) |_{a=\overline{a_t}} \nabla_\theta \mu_\theta(s_t) \right]
-\end{equation}we can efficiently sample from
-the variational distribution q(z; v), and that q(z; v) is differentiable with resp
+\end{equation}
 
 \end{frame}
 
@@ -304,7 +304,6 @@ Q-function estimation for control variate:\\
 
 \begin{center}
 \vspace{1mm}
-
 {\setstretch{2.0}
 $T_\pi[Q](s,a) := r(s,a) + E_\pi[Q(s',a') | s,a]$\\
 
@@ -393,16 +392,86 @@ Proposed extention:
 \section{RETRACE}
 
 \begin{frame}[t]
-Considet general form of operator:
+\frametitle{Retrace}
+
+Consider general form of operator:
 \begin{equation*}
-R Q [x,a] = Q[x,a] + E_\mu \left[ \sum_{t=0}^\infty \gamma^t \prod_{i=1}^{t} c_t \left( r_t + E_\pi(Q(x_{t+1},a)) - Q(x_t,a) \right) \right]
+R Q (x,a) = Q(x,a) + E_\mu \left[ \sum_{t=0}^\infty \gamma^t \left( \prod_{i=1}^{t} c_t \right) \left( r_t + \gamma E_\pi Q (x_{t+1},.) - Q(x_t,a_t) \right) \right]
 \end{equation*}
 
 \begin{itemize}
-\item $c_t = \frac{\pi(a_t | s_t) }{\mu(a_t | s_t)}$ \\
-Importance Sampling for policy estimation with baseline $Q$. $\forall Q,  R Q = Q_\pi$
+\item \textbf{IS:} $c_t = \frac{\pi(a_t | s_t) }{\mu(a_t | s_t)}$ \\
+Importance Sampling for policy estimation with baseline $Q$. $\forall Q,  R Q = Q_\pi$\\
+Yields $Q_\pi$ immediately, though has high variance due to importance sampling
+
+\item \textbf{Q($\lambda$):} $c_t = \lambda$ \\
+Let $\epsilon := max_x \parallel \pi(.|x) - \mu(.|x) \parallel _1$, \\
+then $\forall \lambda < \frac{1-\gamma}{\epsilon \gamma}$ , $R$ is a contraction 
+with fixed point $Q_\pi$\\
+Impractical because it's hard to estimate $\epsilon$, low $\lambda$ yields Bellman operator
+
 
 \end{itemize}
+\end{frame}
+
+\begin{frame}[t]
+
+\begin{equation*}
+R Q (x,a) = Q(x,a) + E_\mu \left[ \sum_{t=0}^\infty \gamma^t \left( \prod_{i=1}^{t} c_t \right) \left( r_t + \gamma E_\pi Q (x_{t+1},.) - Q(x_t,a_t) \right) \right]
+\end{equation*}
+
+\textbf{Retrace($\lambda$):} $c_t = \lambda min \left(1, \frac{\pi(a_t | s_t) }{\mu(a_t | s_t)} \right)$\\
+
+\begin{itemize}
+\item $\gamma$-contraction around $Q_\pi$.\\ Though we will see a much stronger result in a second\\
+
+\item $\lambda \rightarrow 0 \Rightarrow R \rightarrow T_\pi$\\
+Becomes deterministic as $\lambda \rightarrow 0$ - bias-variance tradeoff possibility, though usually unexploited ($\lambda = 1$)
+
+\item "Safe", unlike Q($\lambda$)
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\begin{theorem}
+Let $\forall t, 0  \leq c_t \leq \frac{\pi(a_t|s_t) }{\mu(a_t | s_t)}$, then:
+\begin{align*}
+ \forall \alpha \in  [1, & \infty],\\
+& |RQ(x,a) - Q_\pi(x,a)| \leq \eta(x,a) \parallel Q - Q_\pi  \parallel_\alpha
+\end{align*}
+where $\eta(x,a) := 1 - (1-\gamma) E_\mu \left[ \sum_{t \geq 0} \gamma^t \left( \prod_{i=1}^t c_t \right) \right]$
+\end{theorem}
+
+ $\forall t, c_t \simeq 1 \Rightarrow \eta \simeq 0 \Rightarrow R Q \simeq Q_\pi$
+\end{frame}
+
+\section{ACER}
+
+\begin{frame}
+\frametitle{ACER}
+A combination of:
+\begin{itemize}
+\item RETRACE
+\item Stochastic Dueling Networks: simultaneous Q-V off-policy estimation in continuous domain
+\item "Trust Region" policy updates for lowering gradient dispersion
+\item Importance Sampling with weight truncation and correction
+\end{itemize}
+\end{frame}
+
+\subsection{Truncation with bias correction}
+
+\begin{frame}
+\frametitle{Truncation with bias correction}
+ $\nabla V(s) = E_{traj \sim \mu } \left[ \left( \prod_{i=0}^t \rho_i \right) \nabla \log \pi (a_t|s_t) Q(s_t, a_t) \right]$,\\
+ $\rho_i = \frac{\pi(a_i|s_i)}{\mu(a_i|s_i)}$\\
+ First, replace full-trajectory importance sampling, involving product of many potentially unbounded weights, with last importance weight $\rho_t$:\\
+  $\nabla V(s) \simeq g^{marg} = E_{traj \sim \mu } \left[  \rho_t \nabla \log \pi (a_t|s_t) Q(s_t, a_t) \right]$\\
+Let $\overline{\rho} = min(c, \rho)$, then:
+\begin{align*}
+g^{marg} = E_{traj \sim \mu } \big[ & \overline{\rho_t} \nabla \log \pi (a_t|s_t) Q(s_t, a_t) + \\
+& + E_{a \sim \pi} \left( \left[\frac{\rho_t(a) - c}{\rho_t(a)}\right]_+ \nabla \log \pi (a|s_t) Q(s_t, a) \right) \big]
+\end{align*}
 
 \end{frame}
 
