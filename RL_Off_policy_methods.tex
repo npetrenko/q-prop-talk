@@ -420,7 +420,7 @@ Impractical because it's hard to estimate $\epsilon$, low $\lambda$ yields Bellm
 R Q (x,a) = Q(x,a) + E_\mu \left[ \sum_{t=0}^\infty \gamma^t \left( \prod_{i=1}^{t} c_t \right) \left( r_t + \gamma E_\pi Q (x_{t+1},.) - Q(x_t,a_t) \right) \right]
 \end{equation*}
 
-\textbf{Retrace($\lambda$):} $c_t = \lambda min \left(1, \frac{\pi(a_t | s_t) }{\mu(a_t | s_t)} \right)$\\
+\textbf{Retrace($\lambda$):} $c_t = \lambda min \left(1, \frac{\pi(a_t | s_t) }{\mu(a_t | s_t)} \right)$, $\lambda \in [0,1]$\\
 
 \begin{itemize}
 \item $\gamma$-contraction around $Q_\pi$.\\ Though we will see a much stronger result in a second\\
@@ -428,7 +428,7 @@ R Q (x,a) = Q(x,a) + E_\mu \left[ \sum_{t=0}^\infty \gamma^t \left( \prod_{i=1}^
 \item $\lambda \rightarrow 0 \Rightarrow R \rightarrow T_\pi$\\
 Becomes deterministic as $\lambda \rightarrow 0$ - bias-variance tradeoff possibility, though usually unexploited ($\lambda = 1$)
 
-\item "Safe", unlike Q($\lambda$)
+\item "Safe", unlike Q($\lambda$) - defines contraction mapping for any pairs of policies
 \end{itemize}
 
 \end{frame}
@@ -463,16 +463,30 @@ A combination of:
 
 \begin{frame}
 \frametitle{Truncation with bias correction}
- $\nabla V(s) = E_{traj \sim \mu } \left[ \left( \prod_{i=0}^t \rho_i \right) \nabla \log \pi (a_t|s_t) Q(s_t, a_t) \right]$,\\
+ $\nabla V(s) = E_{traj \sim \mu } \left[ \left( \prod_{i=0}^t \rho_i \right) \nabla \log \pi (a_t|s_t) Q(s_t, a_t) | s_0 = s \right]$,\\
  $\rho_i = \frac{\pi(a_i|s_i)}{\mu(a_i|s_i)}$\\
  First, replace full-trajectory importance sampling, involving product of many potentially unbounded weights, with last importance weight $\rho_t$:\\
   $\nabla V(s) \simeq g^{marg} = E_{traj \sim \mu } \left[  \rho_t \nabla \log \pi (a_t|s_t) Q(s_t, a_t) \right]$\\
+  
+ \vspace{3mm}
 Let $\overline{\rho} = min(c, \rho)$, then:
 \begin{align*}
 g^{marg} = E_{traj \sim \mu } \big[ & \overline{\rho_t} \nabla \log \pi (a_t|s_t) Q(s_t, a_t) + \\
 & + E_{a \sim \pi} \left( \left[\frac{\rho_t(a) - c}{\rho_t(a)}\right]_+ \nabla \log \pi (a|s_t) Q(s_t, a) \right) \big]
 \end{align*}
+\vspace{3mm}
+$\overline{\rho_t}  \leq c$; $\left[\frac{\rho_t(a) - c}{\rho_t(a)}\right]_+ \leq 1$
+\end{frame}
 
+\subsection{Stochastic Dueling networks}
+\begin{frame}
+\frametitle{Stochastic Dueling networks}
+Two "heads": $A, V$
+\begin{align*}
+\tilde{Q_\omega} (s_t, a_t) \sim V_\omega (s_t) + A_\omega(s_t, a_t) - \frac{1}{n} \sum_{i=1}^n A_\omega (s_t, u_i), u_i \sim \pi(.|s_t)
+\end{align*}
+Estimate $V_\omega \simeq V$ is consistent with Q: $E_\pi E_u \tilde{Q_\omega} (s_t, a_t) = V_\omega (s_t)$\\
+Provides error signal for updating $V_\omega$: $E_u \tilde{Q_\omega} = Q_\pi \Rightarrow V_\omega = E_a E_u \tilde{Q_\omega} = V_\pi$
 \end{frame}
 
 \end{document}
