@@ -391,6 +391,49 @@ Proposed extention:
 
 \section{RETRACE}
 
+
+\begin{frame}
+\frametitle{Retrace}
+Consider Bellman operator:\\
+$T_\pi Q (s,a) = r(s,a) + \gamma E_\pi Q(s',a')$\\
+
+\vspace{3mm}
+Projection operator:\\
+$P_{\Omega, \alpha} Q = argmin_{x \in \Omega} \Vert x - Q \Vert_\alpha$\\
+
+\vspace{3mm}
+
+\begin{itemize}
+\item $ \forall \alpha \in [1,\infty], \Vert TQ - TQ' \Vert_\alpha \leq \gamma \Vert Q - Q' \Vert_\alpha$
+\item Then $P_{\Omega, 2} T$ is also a $\gamma$-contraction mapping
+\end{itemize}
+
+\vspace{3mm}
+So why bother?
+
+\end{frame}
+
+\begin{frame}[t]
+Let:
+\begin{itemize}
+\item $F$ - $\gamma$-contraction with fixed point $Q^*$\\
+\item $Q: \Vert FQ - Q \Vert \leq \epsilon$
+\end{itemize}
+\vspace{3mm}
+Then $\Vert Q^* - Q \Vert \leq \frac{\epsilon}{1-\gamma}$ (trivial)
+
+\vspace{4mm}
+
+Take $F = PT_\pi$; $\epsilon = sup_Q \Vert Q - PQ \Vert$ - projection accuracy\\
+$\Rightarrow$ for $PT_\pi$'s stationary point $Q^{PT_\pi}$ $\Vert Q^{PT_\pi} - Q_\pi \Vert \leq \frac{\epsilon}{1-\gamma}$\\
+
+\vspace{4mm}
+
+The upper bound is strict, so for weak contractions the stationary point of $PT_\pi$ can be far from $Q_\pi$
+
+\end{frame}
+
+
 \begin{frame}[t]
 \frametitle{Retrace}
 
@@ -428,7 +471,7 @@ R Q (x,a) = Q(x,a) + E_\mu \left[ \sum_{t=0}^\infty \gamma^t \left( \prod_{i=1}^
 \item $\lambda \rightarrow 0 \Rightarrow R \rightarrow T_\pi$\\
 Becomes deterministic as $\lambda \rightarrow 0$ - bias-variance tradeoff possibility, though usually unexploited ($\lambda = 1$)
 
-\item "Safe", unlike Q($\lambda$) - defines contraction mapping for any pairs of policies
+\item "Safe", unlike Q($\lambda$) - defines contraction mapping for any pair of policies
 \end{itemize}
 
 \end{frame}
@@ -443,7 +486,10 @@ Let $\forall t, 0  \leq c_t \leq \frac{\pi(a_t|s_t) }{\mu(a_t | s_t)}$, then:
 where $\eta(x,a) := 1 - (1-\gamma) E_\mu \left[ \sum_{t \geq 0} \gamma^t \left( \prod_{i=1}^t c_t \right) \right]$
 \end{theorem}
 
- $\forall t, c_t \simeq 1 \Rightarrow \eta \simeq 0 \Rightarrow R Q \simeq Q_\pi$
+ $\forall t, c_t \simeq 1 \Rightarrow \eta \simeq 0 \Rightarrow R Q \simeq Q_\pi$ - $R$ yields $Q_\pi$ almost immediately if $\mu$ and $\pi$ are close\\
+ 
+\vspace{3mm}
+ 
 \end{frame}
 
 \section{ACER}
