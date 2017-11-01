@@ -404,8 +404,8 @@ $P_{\Omega, \alpha} Q = argmin_{x \in \Omega} \Vert x - Q \Vert_\alpha$\\
 \vspace{3mm}
 
 \begin{itemize}
-\item $ \forall \alpha \in [1,\infty], \Vert TQ - TQ' \Vert_\alpha \leq \gamma \Vert Q - Q' \Vert_\alpha$
-\item Then $P_{\Omega, 2} T$ is also a $\gamma$-contraction mapping
+\item $ \forall \alpha \in [1,\infty], \Vert TQ - TQ' \Vert_\alpha \leq \gamma \Vert Q - Q' \Vert_\alpha, T_\pi Q_\pi = Q_\pi$
+\item Then $P_{\Omega, 2} T$ is also a $\gamma$-contraction mapping with supposedly appropriate stationary point
 \end{itemize}
 
 \vspace{3mm}
@@ -420,16 +420,17 @@ Let:
 \item $Q: \Vert FQ - Q \Vert \leq \epsilon$
 \end{itemize}
 \vspace{3mm}
-Then $\Vert Q^* - Q \Vert \leq \frac{\epsilon}{1-\gamma}$ (trivial)
+Then $\Vert Q^* - Q \Vert \leq \frac{\epsilon}{1-\gamma}$ (use triangle inequality, Luke!)
 
 \vspace{4mm}
 
-Take $F = PT_\pi$; $\epsilon = sup_Q \Vert Q - PQ \Vert$ - projection accuracy\\
+Take $F = PT_\pi$;\\
+ $\epsilon = \Vert Q_\pi - PQ_\pi \Vert = \Vert Q_\pi - PT_\pi Q_\pi \Vert$ - projection accuracy\\
 $\Rightarrow$ for $PT_\pi$'s stationary point $Q^{PT_\pi}$ $\Vert Q^{PT_\pi} - Q_\pi \Vert \leq \frac{\epsilon}{1-\gamma}$\\
 
 \vspace{4mm}
 
-The upper bound is strict, so for weak contractions the stationary point of $PT_\pi$ can be far from $Q_\pi$
+The upper bound is strict, so for weak contractions the stationary point of $PT_\pi$ can be very far from $Q_\pi$
 
 \end{frame}
 
@@ -471,7 +472,7 @@ R Q (x,a) = Q(x,a) + E_\mu \left[ \sum_{t=0}^\infty \gamma^t \left( \prod_{i=1}^
 \item $\lambda \rightarrow 0 \Rightarrow R \rightarrow T_\pi$\\
 Becomes deterministic as $\lambda \rightarrow 0$ - bias-variance tradeoff possibility, though usually unexploited ($\lambda = 1$)
 
-\item "Safe", unlike Q($\lambda$) - defines contraction mapping for any pair of policies
+\item "Safe", unlike Q($\lambda$) - defines contraction mapping for any pair of policies, independently of hyperparameters
 \end{itemize}
 
 \end{frame}
@@ -533,6 +534,34 @@ Two "heads": $A, V$
 \end{align*}
 Estimate $V_\omega \simeq V$ is consistent with Q: $E_\pi E_u \tilde{Q_\omega} (s_t, a_t) = V_\omega (s_t)$\\
 Provides error signal for updating $V_\omega$: $E_u \tilde{Q_\omega} = Q_\pi \Rightarrow V_\omega = E_a E_u \tilde{Q_\omega} = V_\pi$
+\end{frame}
+
+\subsection{Trust Region updates}
+\begin{frame}
+\frametitle{Trust Region Updates}
+ACER gradient with respect to actor's statistics $\phi_\theta(s_t)$:\\
+\begin{align*}
+g^{acer} = & \overline{\rho_t}\nabla_\phi log(\pi(a_t|s_t)) \left[ Q^{ret} (s_t,a_t) - V_\theta(s_t) \right] + \\
+			& + E_{a \sim \pi} \left[ \frac{\rho_t(a) - c}{\rho_t(a)} \right]_+ \nabla_\phi log(\pi(a|s_t)) [Q_\theta (s_t, a) - V_\theta (s_t)]
+\end{align*}
+
+Trust Region:\\
+
+\begin{center}
+minimize $\Vert g^{acer} - z \Vert_2$\\
+s.t. $k^T z \leq \delta$
+\end{center}
+\vspace{3mm}
+Where:
+$k = \nabla_{\phi_\theta (s_t)} D_{KL} \left[ \pi_{\phi_{\theta_a}} (s_t) \Vert \pi_{\phi_\theta} (s_t) \right]$\\
+$\theta_a$ - average policy network
+
+\vspace{3mm}
+$z^* = g^{acer} - max \left( 0, \frac{k^T g^{acer} - \delta}{\Vert k \Vert_2^2} \right) k$
+
+$z^*$ is then used to calculate gradients with respect to $\theta$ in backpropagation
+
+
 \end{frame}
 
 \end{document}
