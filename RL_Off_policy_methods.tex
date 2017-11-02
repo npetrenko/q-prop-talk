@@ -426,11 +426,14 @@ Then $\Vert Q^* - Q \Vert \leq \frac{\epsilon}{1-\gamma}$ (use triangle inequali
 
 Take $F = PT_\pi$;\\
  $\epsilon = \Vert Q_\pi - PQ_\pi \Vert = \Vert Q_\pi - PT_\pi Q_\pi \Vert$ - projection accuracy\\
-$\Rightarrow$ for $PT_\pi$'s stationary point $Q^{PT_\pi}$ $\Vert Q^{PT_\pi} - Q_\pi \Vert \leq \frac{\epsilon}{1-\gamma}$\\
+$\Rightarrow$ for $PT_\pi$'s stationary point $Q^{PT_\pi}$ :
+\begin{center}
+$\Vert Q^{PT_\pi} - Q_\pi \Vert \leq \frac{\epsilon}{1-\gamma}$
+\end{center}
 
 \vspace{4mm}
 
-The upper bound is strict, so for weak contractions the stationary point of $PT_\pi$ can be very far from $Q_\pi$
+The upper bound is strict (least upper bound), so for weak contractions the stationary point of $PT_\pi$ can be very far from $Q_\pi$
 
 \end{frame}
 
@@ -510,15 +513,19 @@ A combination of:
 
 \begin{frame}
 \frametitle{Truncation with bias correction}
- $\nabla V(s) = E_{traj \sim \mu } \left[ \left( \prod_{i=0}^t \rho_i \right) \nabla \log \pi (a_t|s_t) Q(s_t, a_t) | s_0 = s \right]$,\\
+ $\nabla J = E_{traj \sim \mu } \left[ \left( \prod_{i=0}^t \rho_i \right) \nabla \log \pi (a_t|s_t) Q(s_t, a_t) | s_0 = s \right]$;
  $\rho_i = \frac{\pi(a_i|s_i)}{\mu(a_i|s_i)}$\\
- First, replace full-trajectory importance sampling, involving product of many potentially unbounded weights, with last importance weight $\rho_t$:\\
-  $\nabla V(s) \simeq g^{marg} = E_{traj \sim \mu } \left[  \rho_t \nabla \log \pi (a_t|s_t) Q(s_t, a_t) \right]$\\
+ \vspace{3mm}
+ First, replace full-trajectory importance sampling, involving product of many potentially unbounded weights, with last importance weight $\rho_t$:
+ 
+ \begin{center}
+ $\nabla J \simeq g^{marg} = E_{traj \sim \mu } \left[  \rho_t \nabla \log \pi (a_t|s_t) Q(s_t, a_t) \right]$
+ \end{center}
   
  \vspace{3mm}
 Let $\overline{\rho} = min(c, \rho)$, then:
 \begin{align*}
-g^{marg} = E_{traj \sim \mu } \big[ & \overline{\rho_t} \nabla \log \pi (a_t|s_t) Q(s_t, a_t) + \\
+g^{marg} = & E_{traj \sim \mu } \big[ \overline{\rho_t} \nabla \log \pi (a_t|s_t) Q(s_t, a_t) + \\
 & + E_{a \sim \pi} \left( \left[\frac{\rho_t(a) - c}{\rho_t(a)}\right]_+ \nabla \log \pi (a|s_t) Q(s_t, a) \right) \big]
 \end{align*}
 \vspace{3mm}
@@ -528,12 +535,24 @@ $\overline{\rho_t}  \leq c$; $\left[\frac{\rho_t(a) - c}{\rho_t(a)}\right]_+ \le
 \subsection{Stochastic Dueling networks}
 \begin{frame}
 \frametitle{Stochastic Dueling networks}
+Only for estimation in continuous domains
+\begin{itemize}
+\item Deterministic V estimation
+\item Stochastic Q and A estimation
+\end{itemize}
+
+\vspace{3mm}
 Two "heads": $A, V$
 \begin{align*}
-\tilde{Q_\omega} (s_t, a_t) \sim V_\omega (s_t) + A_\omega(s_t, a_t) - \frac{1}{n} \sum_{i=1}^n A_\omega (s_t, u_i), u_i \sim \pi(.|s_t)
+\tilde{Q_\omega} (s_t, a_t) \sim & V_\omega (s_t) + A_\omega(s_t, a_t) - \frac{1}{n} \sum_{i=1}^n A_\omega (s_t, u_i),\\ & u_i \sim \pi(.|s_t)
 \end{align*}
-Estimate $V_\omega \simeq V$ is consistent with Q: $E_\pi E_u \tilde{Q_\omega} (s_t, a_t) = V_\omega (s_t)$\\
-Provides error signal for updating $V_\omega$: $E_u \tilde{Q_\omega} = Q_\pi \Rightarrow V_\omega = E_a E_u \tilde{Q_\omega} = V_\pi$
+
+\begin{itemize}
+\item Estimate $V_\omega \simeq V$ is consistent with Q: \\
+$E_\pi E_u \tilde{Q_\omega} (s_t, a_t) = V_\omega (s_t)$\\
+\item Provides error signal for updating $V_\omega$: $E_u \tilde{Q_\omega} = Q_\pi \Rightarrow V_\omega = E_a E_u \tilde{Q_\omega} = V_\pi$
+\end{itemize}
+
 \end{frame}
 
 \subsection{Trust Region updates}
@@ -553,8 +572,11 @@ s.t. $k^T z \leq \delta$
 \end{center}
 \vspace{3mm}
 Where:
-$k = \nabla_{\phi_\theta (s_t)} D_{KL} \left[ \pi_{\phi_{\theta_a}} (s_t) \Vert \pi_{\phi_\theta} (s_t) \right]$\\
-$\theta_a$ - average policy network
+\begin{itemize}
+\item $k = \nabla_{\phi_\theta (s_t)} D_{KL} \left[ \pi_{\phi_{\theta_a}} (s_t) \Vert \pi_{\phi_\theta} (s_t) \right]$\\
+\item $\theta_a$ - average policy network
+\end{itemize}
+
 
 \vspace{3mm}
 $z^* = g^{acer} - max \left( 0, \frac{k^T g^{acer} - \delta}{\Vert k \Vert_2^2} \right) k$
@@ -562,6 +584,39 @@ $z^* = g^{acer} - max \left( 0, \frac{k^T g^{acer} - \delta}{\Vert k \Vert_2^2} 
 $z^*$ is then used to calculate gradients with respect to $\theta$ in backpropagation
 
 
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\includegraphics[scale=0.25]{acer_discrete}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\includegraphics[scale=0.25]{acer_cont}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Ablation analysis}
+\begin{center}
+\includegraphics[scale=0.22]{ablation}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Discrete actions}
+\begin{center}
+\includegraphics[scale=0.34]{atari}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Continuous actions}
+\begin{center}
+\includegraphics[scale=0.34]{mujoco}
+\end{center}
 \end{frame}
 
 \end{document}
