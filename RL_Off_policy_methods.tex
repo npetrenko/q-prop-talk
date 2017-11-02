@@ -477,7 +477,8 @@ Becomes deterministic as $\lambda \rightarrow 0$ - bias-variance tradeoff possib
 
 \item "Safe", unlike Q($\lambda$) - defines contraction mapping for any pair of policies, independently of hyperparameters
 \end{itemize}
-
+Also, recursive form:\\
+$Q^{ret}(s_t,a_t) = r_t + \gamma c_{t+1} (Q^{ret}(s_{t+1}, a_{t+1}) - Q (s_{t+1}, a_{t+1})) + \gamma V(s_{t+1})$
 \end{frame}
 
 \begin{frame}
@@ -555,6 +556,11 @@ $E_\pi E_u \tilde{Q_\omega} (s_t, a_t) = V_\omega (s_t)$\\
 
 \end{frame}
 
+\begin{frame}
+Additional target for V:\\
+\includegraphics[scale=0.4]{vtarget}
+\end{frame}
+
 \subsection{Trust Region updates}
 \begin{frame}
 \frametitle{Trust Region Updates}
@@ -598,6 +604,8 @@ $z^*$ is then used to calculate gradients with respect to $\theta$ in backpropag
 \end{center}
 \end{frame}
 
+\subsection{Empirical Results}
+
 \begin{frame}
 \frametitle{Ablation analysis}
 \begin{center}
@@ -607,6 +615,9 @@ $z^*$ is then used to calculate gradients with respect to $\theta$ in backpropag
 
 \begin{frame}
 \frametitle{Discrete actions}
+Median score across all ATARI games\\
+1 = human\\
+0 = random
 \begin{center}
 \includegraphics[scale=0.34]{atari}
 \end{center}
